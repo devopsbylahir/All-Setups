@@ -6,8 +6,10 @@ if ! command -v aws &>/dev/null || ! command -v curl &>/dev/null || ! command -v
   exit 1
 fi
 
-# AWS Configuration
-aws configure
+# Set AWS credentials (replace with actual values if automating)
+export AWS_ACCESS_KEY_ID="your-access-key"
+export AWS_SECRET_ACCESS_KEY="your-secret-key"
+export AWS_DEFAULT_REGION="ap-south-1"
 
 # Download kubectl and kops binaries
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -20,9 +22,9 @@ chmod +x kubectl kops
 sudo mv kubectl /usr/local/bin/
 sudo mv kops /usr/local/bin/
 
-# Ensure the new binaries are recognized by the system
+# Refresh command cache
 export PATH=$PATH:/usr/local/bin
-source ~/.bashrc
+hash -r  # Refresh command cache
 
 # Validate kops installation
 if ! command -v kops &>/dev/null; then
@@ -38,9 +40,13 @@ ZONE="ap-south-1a"
 MASTER_SIZE="t2.medium"
 NODE_SIZE="t2.micro"
 
-# Create and configure S3 bucket for KOPS state store
-aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$REGION" --create-bucket-configuration LocationConstraint="$REGION"
-aws s3api put-bucket-versioning --bucket "$BUCKET_NAME" --region "$REGION" --versioning-configuration Status=Enabled
+# Check if S3 bucket exists before creating
+if aws s3 ls "s3://$BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
+  aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$REGION" --create-bucket-configuration LocationConstraint="$REGION"
+  aws s3api put-bucket-versioning --bucket "$BUCKET_NAME" --versioning-configuration Status=Enabled
+else
+  echo "Bucket $BUCKET_NAME already exists, skipping creation."
+fi
 
 # Export KOPS state store
 export KOPS_STATE_STORE="s3://$BUCKET_NAME"
@@ -53,6 +59,11 @@ sleep 10
 # Create Kubernetes cluster with Kops
 kops create cluster --name "$CLUSTER_NAME" --zones "$ZONE" --master-count=1 --master-size "$MASTER_SIZE" --node-count=2 --node-size "$NODE_SIZE"
 
-# Apply changes and validate the cluster
+# Apply cluster changes
 kops update cluster --name "$CLUSTER_NAME" --yes --admin
-kops validate cluster --wait 10m
+
+# Explicitly apply the cluster (important)
+kops rolling-update cluster --yes
+
+# Validate the cluster with extended wait time
+kops validate cluster --wait 15m
