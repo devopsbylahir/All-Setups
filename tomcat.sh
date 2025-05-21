@@ -2,10 +2,10 @@
 sudo yum install java-17-amazon-corretto -y
 
 # Set version variable
-TOMCAT_VERSION=9.0.79
+TOMCAT_VERSION=9.0.105
 
-# Download Tomcat from Apache archive (more reliable)
-wget https://archive.apache.org/dist/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz
+# Download Tomcat from the updated link
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz
 
 # Extract
 tar -zxvf apache-tomcat-${TOMCAT_VERSION}.tar.gz
@@ -22,7 +22,7 @@ sed -i '/<\/tomcat-users>/i \
 # Backup context.xml before editing
 cp apache-tomcat-${TOMCAT_VERSION}/webapps/manager/META-INF/context.xml apache-tomcat-${TOMCAT_VERSION}/webapps/manager/META-INF/context.xml.bak
 
-# Comment out the Context element so remote access is allowed for manager app
+# Comment out the Context element to allow remote access to manager app
 sed -i 's|<Context.*>|<!-- & -->|' apache-tomcat-${TOMCAT_VERSION}/webapps/manager/META-INF/context.xml
 
 # Start Tomcat
