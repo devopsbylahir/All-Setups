@@ -17,7 +17,7 @@ cp apache-tomcat-${TOMCAT_VERSION}/conf/tomcat-users.xml apache-tomcat-${TOMCAT_
 sed -i '/<\/tomcat-users>/i \
   <role rolename="manager-gui"/>\n\
   <role rolename="manager-script"/>\n\
-  <user username="tomcat" password="raham123" roles="manager-gui,manager-script"/>' apache-tomcat-${TOMCAT_VERSION}/conf/tomcat-users.xml
+  <user username="tomcat" password="lahir123" roles="manager-gui,manager-script"/>' apache-tomcat-${TOMCAT_VERSION}/conf/tomcat-users.xml
 
 # Backup context.xml before editing
 cp apache-tomcat-${TOMCAT_VERSION}/webapps/manager/META-INF/context.xml apache-tomcat-${TOMCAT_VERSION}/webapps/manager/META-INF/context.xml.bak
